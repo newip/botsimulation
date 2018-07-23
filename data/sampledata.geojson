@@ -1,0 +1,105 @@
+  // var stores = {
+  //   "type": "FeatureCollection",
+  //   "features": [
+  //     {
+  //       "type": "Feature",
+  //       "geometry": {
+  //         "type": "Point",
+  //         "coordinates": [
+  //           116.350971,
+  //           39.96051
+  //         ]
+  //       },
+  //       "properties": {
+  //         "phoneFormatted": "6228-1100",
+  //         "phone": "62281100",
+  //         "address": "教四楼东门",
+  //         "city": "邮电大学",
+  //         "country": "中国",
+  //         "crossStreet": "北邮主校区南北主干道",
+  //         "postalCode": "100876-001-001",
+  //         "state": "北京"
+  //       }
+  //     },
+  //     {
+  //       "type": "Feature",
+  //       "geometry": {
+  //         "type": "Point",
+  //         "coordinates": [
+  //           116.351150,
+  //           39.96041
+  //         ]
+  //       },
+  //       "properties": {
+  //         "phoneFormatted": "6228-1100",
+  //         "phone": "62281100",
+  //         "address": "教一楼西门",
+  //         "city": "邮电大学",
+  //         "country": "中国",
+  //         "crossStreet": "北邮主校区南北主干道",
+  //         "postalCode": "100876-001-002",
+  //         "state": "北京"
+  //       }
+  //     },
+  //     {
+  //       "type": "Feature",
+  //       "geometry": {
+  //         "type": "Point",
+  //         "coordinates": [
+  //           116.3518,
+  //           39.96038
+  //         ]
+  //       },
+  //       "properties": {
+  //         "phoneFormatted": "6228-1100",
+  //         "phone": "62281100",
+  //         "address": "教一楼南门",
+  //         "city": "邮电大学",
+  //         "country": "中国",
+  //         "crossStreet": "北邮主校区南北主干道",
+  //         "postalCode": "100876-001-002",
+  //         "state": "北京"
+  //       }
+  //     },
+  //     {
+  //       "type": "Feature",
+  //       "geometry": {
+  //         "type": "Point",
+  //         "coordinates": [
+  //           116.35244,
+  //           39.96048
+  //         ]
+  //       },
+  //       "properties": {
+  //         "phoneFormatted": "6228-1100",
+  //         "phone": "62281100",
+  //         "address": "教一楼东门",
+  //         "city": "邮电大学",
+  //         "country": "中国",
+  //         "crossStreet": "北邮主校区南北主干道",
+  //         "postalCode": "100876-001-002",
+  //         "state": "北京"
+  //       }
+  //     },
+  //     {
+  //       "type": "Feature",
+  //       "geometry": {
+  //         "type": "Point",
+  //         "coordinates": [
+  //           116.35178,
+  //           39.9608
+  //         ]
+  //       },
+  //       "properties": {
+  //         "phoneFormatted": "6228-1100",
+  //         "phone": "62281100",
+  //         "address": "小白楼北门",
+  //         "city": "邮电大学",
+  //         "country": "中国",
+  //         "crossStreet": "北邮主校区南北主干道",
+  //         "postalCode": "100876-001-002",
+  //         "state": "北京"
+  //       }
+  //     },
+  //     ]
+  //   };

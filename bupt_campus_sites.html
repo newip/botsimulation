@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset='utf-8' />
+      <title>Store Locator</title>
+      <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+      <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet'>
+      <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.46.0/mapbox-gl.js'></script>
+      <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.46.0/mapbox-gl.css' rel='stylesheet' />
+
+      <style>
+
+        body {
+          color:#404040;
+          font:400 15px/22px 'Source Sans Pro', 'Helvetica Neue', Sans-serif;
+          margin:0;
+          padding:0;
+          -webkit-font-smoothing:antialiased;
+        }
+        * {
+          -webkit-box-sizing:border-box;
+          -moz-box-sizing:border-box;
+          box-sizing:border-box;
+        }
+        #menu {
+            position: absolute;
+            left: 18%;
+            background: #fff;
+            padding: 10px;
+            font-family: 'Open Sans', sans-serif;
+        }
+        .sidebar {
+          position:absolute;
+          width:18%;
+          height:100%;
+          top:0;left:0;
+          overflow:hidden;
+          border-right:1px solid rgba(0,0,0,0.25);
+        }
+        .pad2 {
+          padding:20px;
+        }
+
+        .map {
+          position:absolute;
+          left:18%;
+          width:82%;
+          top:0;bottom:0;
+        }
+
+        h1 {
+          font-size:22px;
+          margin:0;
+          font-weight:400;
+          line-height: 20px;
+          padding: 20px 2px;
+        }
+
+        a {
+          color:#404040;
+          text-decoration:none;
+        }
+
+        a:hover {
+          color:#101010;
+        }
+
+        .heading {
+          background:#fff;
+          border-bottom:1px solid #eee;
+          min-height:60px;
+          line-height:60px;
+          padding:0 10px;
+          background-color: #00853e;
+          color: #fff;
+        }
+
+        .listings {
+          height:100%;
+          overflow:auto;
+          padding-bottom:60px;
+        }
+
+        .listings .item {
+          display:block;
+          border-bottom:1px solid #eee;
+          padding:10px;
+          text-decoration:none;
+        }
+
+        .listings .item:last-child { border-bottom:none; }
+        .listings .item .title {
+          display:block;
+          color:#00853e;
+          font-weight:700;
+        }
+
+        .listings .item .title small { font-weight:400; }
+        .listings .item.active .title,
+        .listings .item .title:hover { color:#8cc63f; }
+        .listings .item.active {
+          background-color:#f8f8f8;
+        }
+        ::-webkit-scrollbar {
+          width:3px;
+          height:3px;
+          border-left:0;
+          background:rgba(0,0,0,0.1);
+        }
+        ::-webkit-scrollbar-track {
+          background:none;
+        }
+        ::-webkit-scrollbar-thumb {
+          background:#00853e;
+          border-radius:0;
+        }
+
+        .marker {
+          border: none;
+          cursor: pointer;
+          height: 28px;
+          width: 28px;
+          background-image: url(resources/botmarker.png);
+          background-color: rgba(0, 0, 0, 0);
+        }
+
+        .clearfix { display:block; }
+        .clearfix:after {
+          content:'.';
+          display:block;
+          height:0;
+          clear:both;
+          visibility:hidden;
+        }
+
+        /* Marker tweaks */
+        .mapboxgl-popup {
+          padding-bottom:20px;
+        }
+
+        .mapboxgl-popup-close-button {
+          display:none;
+        }
+        .mapboxgl-popup-content {
+          font:400 12px/17px 'Source Sans Pro', 'Helvetica Neue', Sans-serif;
+          padding:0;
+          width:110px;
+        }
+        .mapboxgl-popup-content-wrapper {
+          padding:1%;
+        }
+        .mapboxgl-popup-content h3 {
+          background:#91c949;
+          color:#fff;
+          margin:0;
+          display:block;
+          padding:6px;
+          border-radius:3px 3px 0 0;
+          font-weight:700;
+          margin-top:-15px;
+        }
+
+        .mapboxgl-popup-content h4 {
+          margin:0;
+          display:block;
+          padding: 6px 6px 6px 6px;
+          font-weight:600;
+        }
+
+        .mapboxgl-popup-content div {
+          padding:10px;
+        }
+
+        .mapboxgl-container .leaflet-marker-icon {
+          cursor:pointer;
+        }
+
+        .mapboxgl-popup-anchor-top > .mapboxgl-popup-content {
+          margin-top: 15px;
+        }
+
+        .mapboxgl-popup-anchor-top > .mapboxgl-popup-tip {
+          border-bottom-color: #91c949;
+        }
+      </style>
+  </head>
+
+  <body>
+    <div class='sidebar'>
+      <div class='heading'>
+        <h1>XinBox Sites Locations</h1>
+      </div>
+    <div id='listings' class='listings'></div>
+    </div>
+    <div id='map' class='map'></div>
+      <div id='menu'>
+        <input id='basic' type='radio' name='rtoggle' value='basic'>
+        <label for='basic'>basic</label>
+        <input id='streets' type='radio' name='rtoggle' value='streets' checked='checked'>
+        <label for='streets'>streets</label>
+        <input id='bright' type='radio' name='rtoggle' value='bright'>
+        <label for='bright'>bright</label>
+        <input id='light' type='radio' name='rtoggle' value='light'>
+        <label for='light'>light</label>
+        <input id='dark' type='radio' name='rtoggle' value='dark'>
+        <label for='dark'>dark</label>
+        <input id='satellite' type='radio' name='rtoggle' value='satellite'>
+        <label for='satellite'>satellite</label>
+      </div>
+  <script>
+  // This will let you use the .remove() function later on
+  if (!('remove' in Element.prototype)) {
+    Element.prototype.remove = function() {
+      if (this.parentNode) {
+          this.parentNode.removeChild(this);
+      }
+    };
+  }
+
+  mapboxgl.accessToken = 'pk.eyJ1IjoibmV3aXAiLCJhIjoiY2pqdjd6ZzEyMGQ2MjNycXc1OXdoY3o4MyJ9.VKbTGUU349ROicywczdVqg';
+
+  // This adds the map
+  var map = new mapboxgl.Map({
+    // container id specified in the HTML
+    container: 'map',
+    // style URL
+    style: 'mapbox://styles/mapbox/streets-v9',
+    // initial position in [long, lat] format
+    center: [116.3522, 39.9612],
+    // initial zoom
+    zoom: 16.4,
+    // scrollZoom: false
+  });
+
+
+  // function readTextFile(file, callback) {
+  //     var rawFile = new XMLHttpRequest();
+  //     rawFile.overrideMimeType("application/json");
+  //     rawFile.open("GET", file, true);
+  //     rawFile.onreadystatechange = function() {
+  //         if (rawFile.readyState === 4 && rawFile.status == "200") {
+  //             callback(rawFile.responseText);
+  //         }
+  //     }
+  //     rawFile.send(null);
+  // }
+
+  // //usage:
+  // readTextFile("data/buptXinboxSites.geojson", function(text){
+  //     var stores = JSON.parse(text);
+  //     console.log(data);
+  // });
+
+  var stores = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"小白楼北门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-001","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3517647981643,39.96084160887671]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教一楼西门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-002","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3511505722999,39.9605352836874]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教一楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-003","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3517916202545,39.96041398675664]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教一楼东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-004","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35244339704514,39.960566121855834]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教二楼北门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-005","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35185599327093,39.959262683141226]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教二楼西门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-006","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35120689868927,39.95911054514206]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"财务处楼门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-007","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3512659072876,39.960668915650146]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教三楼北门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-008","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35022521018976,39.95929146596785]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教三楼东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-009","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35099768638605,39.959184558264994]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教三楼西门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-010","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3494715094566,39.95904064378569]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教四楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-011","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35013937950134,39.96038726028536]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教四楼东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-012","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3509494066238,39.960648356903654]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"教四楼西门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-013","state":"北京"},"geometry":{"type":"Point","coordinates":[476.34934008121485,39.96054761895643]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"鸿通楼门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-014","state":"北京"},"geometry":{"type":"Point","coordinates":[476.34913086891174,39.96079432386995]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"邮政局楼门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-015","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3492274284362,39.96046127202643]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"移动营业厅楼门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-016","state":"北京"},"geometry":{"type":"Point","coordinates":[476.349181830883,39.960013088590316]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"主楼正门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-017","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3519069552422,39.96006243002992]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"科学会堂南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-018","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35278135538096,39.95956695812413]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"网络中心南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-019","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3528108596801,39.9589378475436]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"图书馆正门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-020","state":"北京"},"geometry":{"type":"Point","coordinates":[476.351518034935,39.96133707154645]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学一楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-021","state":"北京"},"geometry":{"type":"Point","coordinates":[476.34967535734177,39.96093823465843]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学二楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-022","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3505443930626,39.960971128510394]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学三楼北门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-023","state":"北京"},"geometry":{"type":"Point","coordinates":[476.34964317083364,39.96166806327987]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学四楼北门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-024","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35052829980856,39.96169273340701]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学五楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-025","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3496217131614,39.96206072841362]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学八楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-026","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35048270225525,39.96208334256732]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学十三楼东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-027","state":"北京"},"geometry":{"type":"Point","coordinates":[476.34917914867395,39.961799637188456]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"留学生公寓北门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-028","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3495948910713,39.96266102886648]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"漫咖啡正门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-029","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3512337207794,39.96219435739512]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"ATM中心西门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-030","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3513061404228,39.96205044925037]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学九楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-031","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3497102260589,39.96282343801467]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"科技大厦东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-032","state":"北京"},"geometry":{"type":"Point","coordinates":[476.34927570819855,39.96316264575073]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学十一楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-033","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3497853279114,39.96325721245598]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学十楼东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-034","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35084480047226,39.963078357924985]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"经管楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-035","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35120421648026,39.963031074465015]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"双创中心南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-036","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35180503129953,39.96303518607153]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学六楼东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-037","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35199815034866,39.963279826213935]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"综合楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-038","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3515689969063,39.96254384734278]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学生活动中心西门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-039","state":"北京"},"geometry":{"type":"Point","coordinates":[476.35100305080414,39.96255618224946]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"青年公寓东门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-040","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3491684198379,39.962558238067004]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"科研楼北门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-041","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3529020547866,39.96308041372683]}},{"type":"Feature","properties":{"phoneFormatted":"6228-1100","phone":"62281100","address":"学二十九楼南门","city":"邮电大学","country":"中国","crossStreet":"北邮主校区","postalCode":"100876-001-042","state":"北京"},"geometry":{"type":"Point","coordinates":[476.3544496893882,39.96119521745595]}}]}
+
+    // This adds the data to the map
+  map.on('load', function (e) {
+    
+    // map.addLayer({
+    //     id: 'locations',
+    //     type: 'symbol',
+    //     // Add a GeoJSON source containing place coordinates and information.
+    //     source: {
+    //     type: 'geojson',
+    //     data: stores
+    //     },
+    //     layout: {
+    //     'icon-image': 'stadium-15',
+    //     'icon-allow-overlap': true,
+    //     }
+    // });
+    
+    // This is where your '.addLayer()' used to be, instead add only the source without styling a layer
+    map.addSource("places", {
+      "type": "geojson",
+      "data": stores
+    });
+
+    // Initialize the list
+    buildLocationList(stores);
+
+  });
+
+  map.addControl(new mapboxgl.NavigationControl());
+
+// Add layer control bar with radio buttons
+
+var layerList = document.getElementById('menu');
+var inputs = layerList.getElementsByTagName('input');
+
+function switchLayer(layer) {
+    var layerId = layer.target.id;
+    map.setStyle('mapbox://styles/mapbox/' + layerId + '-v9');
+}
+
+for (var i = 0; i < inputs.length; i++) {
+    inputs[i].onclick = switchLayer;
+}
+
+  // This is where your interactions with the symbol layer used to be
+  // Now you have interactions with DOM markers instead
+  stores.features.forEach(function(marker, i) {
+    // Create an img element for the marker
+    var el = document.createElement('div');
+    el.id = "marker-" + i;
+    el.className = 'marker';
+    // Add markers to the map at all points
+    new mapboxgl.Marker(el, {offset: [0, -10]})
+        .setLngLat(marker.geometry.coordinates)
+        .addTo(map);
+
+    el.addEventListener('click', function(e){
+        // 1. Fly to the point
+        flyToStore(marker);
+
+        // 2. Close all other popups and display popup for clicked store
+        createPopUp(marker);
+
+        // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+        var activeItem = document.getElementsByClassName('active');
+
+        e.stopPropagation();
+        if (activeItem[0]) {
+           activeItem[0].classList.remove('active');
+        }
+
+        var listing = document.getElementById('listing-' + i);
+        listing.classList.add('active');
+
+    });
+  });
+
+
+  function flyToStore(currentFeature) {
+    map.flyTo({
+        center: currentFeature.geometry.coordinates,
+        zoom: 17.5
+      });
+  }
+
+  function createPopUp(currentFeature) {
+    var popUps = document.getElementsByClassName('mapboxgl-popup');
+    if (popUps[0]) popUps[0].remove();
+
+
+    var popup = new mapboxgl.Popup({closeOnClick: true})
+          .setLngLat(currentFeature.geometry.coordinates)
+          .setHTML('<h3>XinBox Site</h3>' +
+            '<h4>' + currentFeature.properties.address + '</h4>')
+          .addTo(map);
+  }
+
+
+  function buildLocationList(data) {
+    for (i = 0; i < data.features.length; i++) {
+      var currentFeature = data.features[i];
+      var prop = currentFeature.properties;
+
+      var listings = document.getElementById('listings');
+      var listing = listings.appendChild(document.createElement('div'));
+      listing.className = 'item';
+      listing.id = "listing-" + i;
+
+      var link = listing.appendChild(document.createElement('a'));
+      link.href = '#';
+      link.className = 'title';
+      link.dataPosition = i;
+      link.innerHTML = prop.address;
+
+      var details = listing.appendChild(document.createElement('div'));
+      details.innerHTML = prop.city;
+      if (prop.phone) {
+        details.innerHTML += ' &middot; ' + prop.postalCode;
+      }
+
+      link.addEventListener('click', function(e){
+        // Update the currentFeature to the store associated with the clicked link
+        var clickedListing = data.features[this.dataPosition];
+
+        // 1. Fly to the point
+        flyToStore(clickedListing);
+
+        // 2. Close all other popups and display popup for clicked store
+        createPopUp(clickedListing);
+
+        // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+        var activeItem = document.getElementsByClassName('active');
+
+        if (activeItem[0]) {
+           activeItem[0].classList.remove('active');
+        }
+        this.parentNode.classList.add('active');
+
+      });
+    }
+  }
+
+
+    </script>
+  </body>
+</html>
