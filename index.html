@@ -393,23 +393,6 @@ if (!('remove' in Element.prototype)) {
   };
 }
 
-mapboxgl.accessToken = 'pk.eyJ1IjoibmV3aXAiLCJhIjoiY2pqdjd6ZzEyMGQ2MjNycXc1OXdoY3o4MyJ9.VKbTGUU349ROicywczdVqg';
-
-var mycenter = [116.3517, 39.9612];
-var hiscenter = [-77.034084, 38.909671];
-
-// This adds the map to your page
-var map = new mapboxgl.Map({
-  // container id specified in the HTML
-  container: 'map',
-  // style URL
-//   style: 'mapbox://styles/newip/cjjwi8wey39qk2rlw1h0qqtq5',
-  style: 'mapbox://styles/mapbox/light-v9',
-  // initial position in [lon, lat] format
-  center: hiscenter,
-  // initial zoom
-  zoom: 14
-});
 
 var stores = 
   // data from sweetgreen.geojson, downloaded above
@@ -654,6 +637,48 @@ var stores =
         ]
       };
 
+
+map.on('load', function(e) {
+  // Add the data to your map as a layer
+    // map.addLayer({
+    //     id: 'locations',
+    //     type: 'symbol',
+    //     // Add a GeoJSON source containing place coordinates and information.
+    //     source: {
+    //     type: 'geojson',
+    //     data: stores
+    //     },
+    //     layout: {
+    //     'icon-image': 'restaurant-15',
+    //     'icon-allow-overlap': true,
+    //     }
+    // });
+    map.addSource('places', {
+    type: 'geojson',
+    data: stores
+  });
+
+    buildLocationList(stores);
+
+
+mapboxgl.accessToken = 'pk.eyJ1IjoibmV3aXAiLCJhIjoiY2pqdjd6ZzEyMGQ2MjNycXc1OXdoY3o4MyJ9.VKbTGUU349ROicywczdVqg';
+
+var mycenter = [116.3517, 39.9612];
+var hiscenter = [-77.034084, 38.909671];
+
+// This adds the map to your page
+var map = new mapboxgl.Map({
+  // container id specified in the HTML
+  container: 'map',
+  // style URL
+//   style: 'mapbox://styles/newip/cjjwi8wey39qk2rlw1h0qqtq5',
+  style: 'mapbox://styles/mapbox/light-v9',
+  // initial position in [lon, lat] format
+  center: hiscenter,
+  // initial zoom
+  zoom: 14
+});
+
 function buildLocationList(data) {
   // Iterate through the list of stores
   for (i = 0; i < data.features.length; i++) {
@@ -723,27 +748,8 @@ function createPopUp(currentFeature) {
 }
 
 
-map.on('load', function(e) {
-  // Add the data to your map as a layer
-    // map.addLayer({
-    //     id: 'locations',
-    //     type: 'symbol',
-    //     // Add a GeoJSON source containing place coordinates and information.
-    //     source: {
-    //     type: 'geojson',
-    //     data: stores
-    //     },
-    //     layout: {
-    //     'icon-image': 'restaurant-15',
-    //     'icon-allow-overlap': true,
-    //     }
-    // });
-    map.addSource('places', {
-    type: 'geojson',
-    data: stores
-  });
 
-    buildLocationList(stores);
+
 
     stores.features.forEach(function(marker) {
         // Create a div element for the marker
